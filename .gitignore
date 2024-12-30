@@ -24,7 +24,6 @@ wheels/
 venv/
 ENV/
 env/
-.env
 
 # IDE
 .idea/
@@ -39,7 +38,6 @@ env/
 Icon
 ._*
 
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini 
+# Build artifacts
+*.dmg
+*.app 

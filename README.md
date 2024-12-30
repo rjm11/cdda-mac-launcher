@@ -1,75 +1,73 @@
 # CDDA Mac Launcher
 
-A native macOS launcher for Cataclysm: Dark Days Ahead and Cataclysm: Bright Nights. Created to fill the gap in Mac-specific launchers for CDDA, providing a simple, clean solution for Mac users to manage and update their game.
-
-## Why This Launcher?
-
-While Cataclysm: DDA and Bright Nights are fantastic games with active communities, Mac users often lack the convenient launcher tools available to Windows users. This project aims to provide Mac users with a native, straightforward way to:
-- Keep track of both experimental and stable versions
-- Easily update their game without manual DMG handling
-- Preserve save data during updates
-- View patch notes directly in the launcher
-- Switch between CDDA and Bright Nights variants
+A modern, user-friendly launcher for Cataclysm: Dark Days Ahead and Bright Nights on macOS.
 
 ## Features
 
-- Native macOS integration
-- Download and manage both CDDA (experimental and stable) and Bright Nights versions
-- Automatic version tracking and updates
-- Save game preservation during updates
-- Built-in patch notes viewer
-- Easy switching between CDDA and Bright Nights
-- Modern, clean interface using customtkinter
-
-## Installation
-
-### Option 1: Download Release (Recommended)
-1. Download the latest release from the releases page
-2. Mount the DMG
-3. Drag the app to your Applications folder
-4. Launch from Applications or Spotlight
-
-### Option 2: Build from Source
-```bash
-# Clone the repository
-git clone https://github.com/rjm11/cdda-mac-launcher.git
-cd cdda-mac-launcher
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Build the app
-python build_app.py
-
-# Or run directly without building
-python cdda_launcher.py
-```
+- Easy installation and launching of both CDDA Experimental and Stable builds
+- Support for Bright Nights
+- Automatic version checking and updates
+- One-click download and installation
+- Save data preservation between updates
+- Direct access to patch notes
+- GitHub integration for release notes
+- Clean, modern interface using CustomTkinter
 
 ## Requirements
 
-- macOS 10.10 or newer
-- Python 3.7+ (if building from source)
-- Internet connection for version checking and downloads
+- macOS
+- Python 3.x
+- Required Python packages (see requirements.txt)
+
+## Installation
+
+1. Clone this repository:
+```bash
+git clone https://github.com/yourusername/MacCDDALauncher.git
+cd MacCDDALauncher
+```
+
+2. Install required packages:
+```bash
+pip install -r requirements.txt
+```
+
+3. Run the launcher:
+```bash
+python cdda_launcher.py
+```
 
 ## Usage
 
-1. Launch the application
-2. Choose between CDDA and Bright Nights using the toggle at the top
-3. Download your preferred version using the "Download Latest" button
-4. Launch the game using the "Launch" button
-5. View patch notes in the bottom panel
+- Choose between Cataclysm: DDA and Bright Nights using the top buttons
+- View available versions and their status
+- Download and install new versions with one click
+- Launch the game directly from the launcher
+- View patch notes in the app or on GitHub
+- Saves and user data are automatically preserved between updates
 
-The launcher will:
-- Automatically check for updates
-- Show a green checkmark when you have the latest version
-- Display yellow text when updates are available
-- Preserve your save games during updates
-- Store games in `~/Library/Application Support/Cataclysm/`
+## Game Installation Location
 
-## Contributing
+Games are installed to:
+`~/Library/Application Support/Cataclysm/`
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+With subdirectories:
+- `experimental/` - For CDDA experimental builds
+- `stable/` - For CDDA stable builds
+- `bn/` - For Bright Nights builds
+
+## Building the App
+
+To build the standalone app:
+```bash
+python build_app.py
+```
+
+To create a DMG installer:
+```bash
+python build_dmg.py
+```
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/) 
+MIT License - See LICENSE file for details 

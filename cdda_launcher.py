@@ -88,7 +88,7 @@ class CDDALauncher(ctk.CTk):
         
         # Configure window
         self.title("CDDA Mac Launcher")
-        self.geometry("800x800")  # Made taller for patch notes
+        self.geometry("700x600")  # Wider window to accommodate text
         ctk.set_appearance_mode("system")
         
         # Handle window close
@@ -104,6 +104,7 @@ class CDDALauncher(ctk.CTk):
         self.download_progress = ctk.DoubleVar(value=0)
         self.status_text = ctk.StringVar(value="Ready")
         self.showing_cdda = True  # Track which game page we're showing
+        self.latest_experimental_mac_tag = None  # New variable to track last available Mac build
         
         # Setup paths
         self.base_path = os.path.expanduser("~/Library/Application Support/Cataclysm")
@@ -154,63 +155,91 @@ class CDDALauncher(ctk.CTk):
     def _create_ui(self):
         # Header with game selector
         header_frame = ctk.CTkFrame(self)
-        header_frame.grid(row=0, column=0, padx=20, pady=(20,10), sticky="ew")
+        header_frame.grid(row=0, column=0, padx=15, pady=(5,2), sticky="ew")  # Slightly more horizontal padding
         header_frame.grid_columnconfigure(0, weight=1)
         
         # Game selector buttons
         button_frame = ctk.CTkFrame(header_frame)
-        button_frame.pack(pady=10)
+        button_frame.pack(pady=2)
         
         self.cdda_button = ctk.CTkButton(button_frame, 
                                        text="Cataclysm: DDA",
                                        command=lambda: self.switch_game("cdda"),
-                                       width=150)
+                                       width=120,
+                                       height=28)
         self.cdda_button.pack(side="left", padx=5)
         
         self.bn_button = ctk.CTkButton(button_frame,
                                      text="Bright Nights",
                                      command=lambda: self.switch_game("bn"),
-                                     width=150)
+                                     width=120,
+                                     height=28)
         self.bn_button.pack(side="left", padx=5)
         
         # CDDA Frame
         self.cdda_frame = ctk.CTkFrame(self)
-        self.cdda_frame.grid(row=1, column=0, padx=20, pady=(0,10), sticky="ew")
+        self.cdda_frame.grid(row=1, column=0, padx=15, pady=2, sticky="ew")  # Slightly more horizontal padding
         self.cdda_frame.grid_columnconfigure(0, weight=1)
         
         # Experimental Version
         exp_frame = ctk.CTkFrame(self.cdda_frame)
-        exp_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        exp_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")  # Reduced padding
         exp_frame.grid_columnconfigure(1, weight=1)
         
-        ctk.CTkLabel(exp_frame, text="Experimental Version:", 
-                    font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5)
+        # Title with refresh button
+        title_frame = ctk.CTkFrame(exp_frame, fg_color="transparent")
+        title_frame.grid(row=0, column=0, padx=5, pady=2)  # Reduced padding
+        
+        ctk.CTkLabel(title_frame, text="Experimental Version:", 
+                    font=ctk.CTkFont(weight="bold", size=13)).pack(side="left", padx=(0,5))  # Smaller font
+        
+        ctk.CTkButton(title_frame,
+                     text="↻",
+                     command=self.check_versions,
+                     width=20,  # Smaller refresh button
+                     height=20).pack(side="left")
         
         # Split version display into two labels
         version_frame = ctk.CTkFrame(exp_frame, fg_color="transparent")
-        version_frame.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")  # More horizontal padding
         self.exp_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.exp_latest_label.pack(anchor="w")
+        self.exp_latest_label.pack(anchor="w", padx=(0, 10))  # Add right padding
         self.exp_installed_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.exp_installed_label.pack(anchor="w")
+        self.exp_installed_label.pack(anchor="w", padx=(0, 10))  # Add right padding
         
         button_frame = ctk.CTkFrame(exp_frame)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=5)
+        button_frame.grid(row=1, column=0, columnspan=2, pady=2)  # Reduced padding
         
         ctk.CTkButton(button_frame, text="Download Latest", 
-                     command=lambda: self.download_version("experimental")).pack(side="left", padx=5)
+                     command=lambda: self.download_version("experimental"),
+                     width=100,  # Smaller button width
+                     height=28).pack(side="left", padx=2)  # Reduced padding
         ctk.CTkButton(button_frame, text="Launch", 
-                     command=lambda: self.launch_game("experimental")).pack(side="left", padx=5)
+                     command=lambda: self.launch_game("experimental"),
+                     width=80,  # Smaller button width
+                     height=28).pack(side="left", padx=2)  # Reduced padding
         ctk.CTkButton(button_frame, text="Open Folder", 
-                     command=lambda: self.open_folder("experimental")).pack(side="left", padx=5)
+                     command=lambda: self.open_folder("experimental"),
+                     width=90,  # Smaller button width
+                     height=28).pack(side="left", padx=2)  # Reduced padding
         
         # Stable Version
         stable_frame = ctk.CTkFrame(self.cdda_frame)
-        stable_frame.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        stable_frame.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
         stable_frame.grid_columnconfigure(1, weight=1)
         
-        ctk.CTkLabel(stable_frame, text="Stable Version:", 
-                    font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5)
+        # Title with refresh button
+        title_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
+        title_frame.grid(row=0, column=0, padx=10, pady=5)
+        
+        ctk.CTkLabel(title_frame, text="Stable Version:", 
+                    font=ctk.CTkFont(weight="bold")).pack(side="left", padx=(0,5))
+        
+        ctk.CTkButton(title_frame,
+                     text="↻",
+                     command=self.check_versions,
+                     width=25,
+                     height=25).pack(side="left")
         
         # Split version display into two labels
         version_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
@@ -221,23 +250,29 @@ class CDDALauncher(ctk.CTk):
         self.stable_installed_label.pack(anchor="w")
         
         button_frame = ctk.CTkFrame(stable_frame)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=5)
+        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
         
         ctk.CTkButton(button_frame, text="Download Latest", 
-                     command=lambda: self.download_version("stable")).pack(side="left", padx=5)
+                     command=lambda: self.download_version("stable"),
+                     width=100,
+                     height=28).pack(side="left", padx=2)
         ctk.CTkButton(button_frame, text="Launch", 
-                     command=lambda: self.launch_game("stable")).pack(side="left", padx=5)
+                     command=lambda: self.launch_game("stable"),
+                     width=80,
+                     height=28).pack(side="left", padx=2)
         ctk.CTkButton(button_frame, text="Open Folder", 
-                     command=lambda: self.open_folder("stable")).pack(side="left", padx=5)
+                     command=lambda: self.open_folder("stable"),
+                     width=90,
+                     height=28).pack(side="left", padx=2)
         
         # Bright Nights Frame
         self.bn_frame = ctk.CTkFrame(self)
-        self.bn_frame.grid(row=1, column=0, padx=20, pady=(0,10), sticky="ew")
+        self.bn_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
         self.bn_frame.grid_columnconfigure(0, weight=1)
         
         # Bright Nights Version
         bn_version_frame = ctk.CTkFrame(self.bn_frame)
-        bn_version_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        bn_version_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
         bn_version_frame.grid_columnconfigure(1, weight=1)
         
         ctk.CTkLabel(bn_version_frame, text="Latest Version:", 
@@ -252,33 +287,39 @@ class CDDALauncher(ctk.CTk):
         self.bn_installed_label.pack(anchor="w")
         
         button_frame = ctk.CTkFrame(bn_version_frame)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=5)
+        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
         
         ctk.CTkButton(button_frame, text="Download Latest", 
-                     command=lambda: self.download_version("bn")).pack(side="left", padx=5)
+                     command=lambda: self.download_version("bn"),
+                     width=100,
+                     height=28).pack(side="left", padx=2)
         ctk.CTkButton(button_frame, text="Launch", 
-                     command=lambda: self.launch_game("bn")).pack(side="left", padx=5)
+                     command=lambda: self.launch_game("bn"),
+                     width=80,
+                     height=28).pack(side="left", padx=2)
         ctk.CTkButton(button_frame, text="Open Folder", 
-                     command=lambda: self.open_folder("bn")).pack(side="left", padx=5)
+                     command=lambda: self.open_folder("bn"),
+                     width=90,
+                     height=28).pack(side="left", padx=2)
         
         # Initially hide BN frame
         self.bn_frame.grid_remove()
         
         # Progress bar and status in a separate frame
         status_frame = ctk.CTkFrame(self)
-        status_frame.grid(row=2, column=0, padx=20, pady=(0,10), sticky="ew")
+        status_frame.grid(row=2, column=0, padx=20, pady=5, sticky="ew")
         status_frame.grid_columnconfigure(0, weight=1)
         
         self.progress_bar = ctk.CTkProgressBar(status_frame)
-        self.progress_bar.grid(row=0, column=0, padx=10, pady=(10,5), sticky="ew")
+        self.progress_bar.grid(row=0, column=0, padx=10, pady=(5,2), sticky="ew")
         self.progress_bar.set(0)
         
         self.status_label = ctk.CTkLabel(status_frame, textvariable=self.status_text)
-        self.status_label.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
+        self.status_label.grid(row=1, column=0, padx=10, pady=(2,5), sticky="ew")
         
         # Patch Notes Frame
         self.patch_frame = ctk.CTkFrame(self)
-        self.patch_frame.grid(row=3, column=0, padx=20, pady=(0,20), sticky="nsew")
+        self.patch_frame.grid(row=3, column=0, padx=20, pady=5, sticky="nsew")
         self.patch_frame.grid_columnconfigure(0, weight=1)
         self.patch_frame.grid_rowconfigure(1, weight=1)
         
@@ -292,11 +333,22 @@ class CDDALauncher(ctk.CTk):
                                             font=ctk.CTkFont(weight="bold"))
         self.patch_notes_label.grid(row=0, column=0, padx=5, sticky="w")
         
-        self.toggle_button = ctk.CTkButton(notes_header_frame,
+        button_frame = ctk.CTkFrame(notes_header_frame, fg_color="transparent")
+        button_frame.grid(row=0, column=2, padx=5, sticky="e")
+        
+        self.toggle_button = ctk.CTkButton(button_frame,
                                          text="View Stable Notes",
                                          command=self.toggle_patch_notes,
-                                         width=120)
-        self.toggle_button.grid(row=0, column=2, padx=5, sticky="e")
+                                         width=100,
+                                         height=28)
+        self.toggle_button.pack(side="left", padx=(0, 5))
+        
+        self.github_button = ctk.CTkButton(button_frame,
+                                         text="View on Github",
+                                         command=self.open_github_notes,
+                                         width=100,
+                                         height=28)
+        self.github_button.pack(side="left")
         
         self.patch_notes = ctk.CTkTextbox(self.patch_frame, wrap="word")
         self.patch_notes.grid(row=1, column=0, padx=10, pady=(0,10), sticky="nsew")
@@ -351,6 +403,16 @@ class CDDALauncher(ctk.CTk):
             self.patch_notes.delete("0.0", "end")
             self.patch_notes.insert("0.0", self.stable_patch_notes)
 
+    def get_version(self, path, tracked_version):
+        if not os.path.exists(path):
+            return None
+        
+        app_path = os.path.join(path, "Cataclysm.app")
+        if not os.path.exists(app_path):
+            return None
+
+        return tracked_version if tracked_version else "Unknown Version"
+
     def check_versions(self):
         def check():
             try:
@@ -358,24 +420,57 @@ class CDDALauncher(ctk.CTk):
                 exp_response = requests.get("https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases")
                 releases = json.loads(exp_response.text)
                 
+                # Always set latest tag from the first experimental release
                 for release in releases:
                     if "experimental" in release["tag_name"].lower():
-                        self.latest_experimental_url = None
                         self.latest_experimental_tag = release['tag_name']
-                        
-                        # Find Mac OS X experimental build with tiles
+                        break
+                
+                # Then find the newest Mac build by searching all releases
+                found_mac_build = False
+                self.latest_experimental_mac_tag = None
+                self.latest_experimental_url = None
+                
+                for release in releases:
+                    if "experimental" in release["tag_name"].lower():
+                        # Look for Mac build
                         for asset in release["assets"]:
                             name = asset["name"].lower()
                             if "osx" in name and "graphics" in name and "universal" in name and name.endswith(".dmg"):
-                                self.latest_experimental_url = asset["browser_download_url"]
-                                break
+                                if not found_mac_build:  # Only set these for the first Mac build found
+                                    self.latest_experimental_mac_tag = release['tag_name']
+                                    self.latest_experimental_url = asset["browser_download_url"]
+                                    self.experimental_patch_notes = release.get("body", "No patch notes available")
+                                    found_mac_build = True
+                                    break
                         
-                        # Store experimental patch notes
-                        self.experimental_patch_notes = release.get("body", "No patch notes available")
-                        if self.showing_experimental_notes and self.showing_cdda:
-                            self.patch_notes.delete("0.0", "end")
-                            self.patch_notes.insert("0.0", self.experimental_patch_notes)
-                        break
+                        if found_mac_build:
+                            break
+                
+                # Update experimental version display
+                exp_version = self.get_version(self.experimental_path, self.installed_experimental_version)
+                # Compare against Mac build tag instead of latest experimental tag
+                is_exp_latest = exp_version == self.latest_experimental_mac_tag
+                
+                if self.latest_experimental_mac_tag and self.latest_experimental_tag != self.latest_experimental_mac_tag:
+                    latest_text = f"Latest: {self.latest_experimental_tag}\nMac build: {self.latest_experimental_mac_tag}"
+                    if exp_version != self.latest_experimental_mac_tag:
+                        latest_text += "\n(Newer Mac build may come soon)"
+                else:
+                    latest_text = f"Latest: {self.latest_experimental_tag}"
+                
+                installed_text = f"Installed: {exp_version if exp_version else 'Not installed'}"
+                if exp_version and is_exp_latest:
+                    installed_text += " ✓"
+                
+                self.exp_latest_label.configure(
+                    text=latest_text,
+                    text_color=("yellow" if not is_exp_latest else "white")
+                )
+                self.exp_installed_label.configure(
+                    text=installed_text,
+                    text_color="green" if is_exp_latest else "white"
+                )
                 
                 # Check stable version
                 stable_response = requests.get("https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases/latest")
@@ -416,6 +511,15 @@ class CDDALauncher(ctk.CTk):
                             self.latest_bn_url = asset["browser_download_url"]
                             break
                 
+                # Update patch notes display based on current view
+                if self.showing_cdda:
+                    if self.showing_experimental_notes:
+                        self.patch_notes.delete("0.0", "end")
+                        self.patch_notes.insert("0.0", self.experimental_patch_notes)
+                    else:
+                        self.patch_notes.delete("0.0", "end")
+                        self.patch_notes.insert("0.0", self.stable_patch_notes)
+                
                 self.check_installed_versions()
                 
             except Exception as e:
@@ -427,26 +531,19 @@ class CDDALauncher(ctk.CTk):
         thread.start()
 
     def check_installed_versions(self):
-        def get_version(path, tracked_version):
-            if not os.path.exists(path):
-                return None
-            
-            app_path = os.path.join(path, "Cataclysm.app")
-            if not os.path.exists(app_path):
-                return None
-
-            return tracked_version if tracked_version else "Unknown Version"
-        
-        exp_version = get_version(self.experimental_path, self.installed_experimental_version)
-        stable_version = get_version(self.stable_path, self.installed_stable_version)
-        bn_version = get_version(self.bn_path, self.installed_bn_version)
+        exp_version = self.get_version(self.experimental_path, self.installed_experimental_version)
+        stable_version = self.get_version(self.stable_path, self.installed_stable_version)
+        bn_version = self.get_version(self.bn_path, self.installed_bn_version)
         
         # Update experimental version display
-        is_exp_latest = exp_version == self.latest_experimental_tag
-        latest_text = f"Latest:    {self.latest_experimental_tag}"
-        installed_text = f"Installed: {exp_version if exp_version else 'Not installed'}"
+        is_exp_latest = exp_version == self.latest_experimental_mac_tag
+        latest_text = f"Latest:        {self.latest_experimental_tag}\nMac build:     {self.latest_experimental_mac_tag}"
+        installed_text = f"Installed:     {exp_version if exp_version else 'Not installed'}"
+        
         if exp_version and is_exp_latest:
             installed_text += " ✓"
+        if self.latest_experimental_tag != self.latest_experimental_mac_tag:
+            installed_text += "\nLatest Mac Build and Latest Build do not match,\nupdate coming soon"
         
         self.exp_latest_label.configure(
             text=latest_text,
@@ -459,8 +556,8 @@ class CDDALauncher(ctk.CTk):
         
         # Update stable version display
         is_stable_latest = stable_version == self.latest_stable_tag
-        latest_text = f"Latest:    {self.latest_stable_tag}"
-        installed_text = f"Installed: {stable_version if stable_version else 'Not installed'}"
+        latest_text = f"Latest:        {self.latest_stable_tag}"
+        installed_text = f"Installed:     {stable_version if stable_version else 'Not installed'}"
         if stable_version and is_stable_latest:
             installed_text += " ✓"
         
@@ -475,8 +572,8 @@ class CDDALauncher(ctk.CTk):
         
         # Update Bright Nights version display
         is_bn_latest = bn_version == self.latest_bn_tag
-        latest_text = f"Latest:    {self.latest_bn_tag}"
-        installed_text = f"Installed: {bn_version if bn_version else 'Not installed'}"
+        latest_text = f"Latest:        {self.latest_bn_tag}"
+        installed_text = f"Installed:     {bn_version if bn_version else 'Not installed'}"
         if bn_version and is_bn_latest:
             installed_text += " ✓"
         
@@ -491,8 +588,14 @@ class CDDALauncher(ctk.CTk):
 
     def download_version(self, version_type):
         if version_type == "experimental":
+            if not self.latest_experimental_url:
+                if self.latest_experimental_tag != self.latest_experimental_mac_tag:
+                    self.status_text.set(f"No Mac build yet for {self.latest_experimental_tag}. Latest Mac build: {self.latest_experimental_mac_tag}")
+                else:
+                    self.status_text.set(f"No Mac download found for {version_type} version")
+                return
             url = self.latest_experimental_url
-            version_tag = self.latest_experimental_tag
+            version_tag = self.latest_experimental_mac_tag
         elif version_type == "stable":
             url = self.latest_stable_url
             version_tag = self.latest_stable_tag
@@ -644,6 +747,28 @@ class CDDALauncher(ctk.CTk):
     def on_closing(self):
         self.single_instance.cleanup()
         self.quit()
+
+    def open_github_notes(self):
+        base_url = "https://github.com/CleverRaven/Cataclysm-DDA/releases"
+        if self.showing_cdda:
+            if self.showing_experimental_notes:
+                if self.latest_experimental_tag:
+                    url = f"{base_url}/tag/{self.latest_experimental_tag}"
+                else:
+                    url = base_url
+            else:
+                if self.latest_stable_tag:
+                    url = f"{base_url}/tag/{self.latest_stable_tag}"
+                else:
+                    url = f"{base_url}/latest"
+        else:
+            # For Bright Nights
+            if self.latest_bn_tag:
+                url = f"https://github.com/cataclysmbnteam/Cataclysm-BN/releases/tag/{self.latest_bn_tag}"
+            else:
+                url = "https://github.com/cataclysmbnteam/Cataclysm-BN/releases"
+        
+        webbrowser.open(url)
 
 if __name__ == "__main__":
     app = CDDALauncher()

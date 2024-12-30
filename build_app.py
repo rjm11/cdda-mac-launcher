@@ -47,7 +47,7 @@ def convert_ico_to_icns():
     
     return None
 
-def build_app():
+def create_app(skip_install=False):
     # App bundle structure
     app_name = "CDDA Launcher.app"
     contents_dir = os.path.join(app_name, "Contents")
@@ -133,13 +133,17 @@ python3 "${DIR}/../Resources/cdda_launcher.py"
     
     print(f"Created {app_name}")
     
-    # Move to Applications if requested
-    response = input("Would you like to install the app to /Applications? (y/n): ")
-    if response.lower() == 'y':
-        if os.path.exists('/Applications/CDDA Launcher.app'):
-            shutil.rmtree('/Applications/CDDA Launcher.app')
-        shutil.move(app_name, '/Applications/')
-        print("Installed to /Applications")
+    if not skip_install:
+        # Ask about installation
+        response = input("Would you like to install the app to /Applications? (y/n): ")
+        if response.lower() == 'y':
+            install_path = "/Applications"
+            if os.path.exists(os.path.join(install_path, app_name)):
+                shutil.rmtree(os.path.join(install_path, app_name))
+            shutil.copytree(app_name, os.path.join(install_path, app_name))
+            print("Installed to /Applications")
 
 if __name__ == "__main__":
-    build_app() 
+    import sys
+    # Skip installation if --skip-install flag is present
+    create_app(skip_install='--skip-install' in sys.argv) 

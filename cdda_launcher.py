@@ -208,83 +208,131 @@ class CDDALauncher(ctk.CTk):
         self.cdda_frame.grid(row=1, column=0, padx=15, pady=2, sticky="ew")
         self.cdda_frame.grid_columnconfigure(0, weight=1)
         
-        # Experimental Version
-        exp_frame = ctk.CTkFrame(self.cdda_frame)
-        exp_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
-        exp_frame.grid_columnconfigure(1, weight=1)
+        # Version Frame (will show either Experimental or Stable)
+        self.version_frame = ctk.CTkFrame(self.cdda_frame)
+        self.version_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
+        self.version_frame.grid_columnconfigure(1, weight=1)
         
-        # Title with refresh button
-        title_frame = ctk.CTkFrame(exp_frame, fg_color="transparent")
+        # Title with refresh and toggle buttons
+        title_frame = ctk.CTkFrame(self.version_frame, fg_color="transparent")
         title_frame.grid(row=0, column=0, padx=5, pady=2)
         
-        ctk.CTkLabel(title_frame, text="Experimental Version:", 
-                    font=ctk.CTkFont(weight="bold", size=13)).pack(side="left", padx=(0,5))
+        self.version_title = ctk.CTkLabel(title_frame, text="Experimental Version:", 
+                    font=ctk.CTkFont(weight="bold", size=13))
+        self.version_title.pack(side="left", padx=(0,5))
         
         ctk.CTkButton(title_frame,
                      text="↻",
                      command=self.check_versions,
                      width=20,
-                     height=20).pack(side="left")
+                     height=20).pack(side="left", padx=2)
+        
+        ctk.CTkButton(title_frame,
+                     text="Switch to Stable",
+                     command=self.toggle_cdda_version,
+                     width=100,
+                     height=20).pack(side="left", padx=2)
         
         # Split version display into two labels
-        version_frame = ctk.CTkFrame(exp_frame, fg_color="transparent")
-        version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")
-        self.exp_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.exp_latest_label.pack(anchor="w")
-        self.exp_installed_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.exp_installed_label.pack(anchor="w")
+        version_info_frame = ctk.CTkFrame(self.version_frame, fg_color="transparent")
+        version_info_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")
+        self.version_latest_label = ctk.CTkLabel(version_info_frame, text="", font=ctk.CTkFont(family="Courier"))
+        self.version_latest_label.pack(anchor="w")
+        self.version_installed_label = ctk.CTkLabel(version_info_frame, text="", font=ctk.CTkFont(family="Courier"))
+        self.version_installed_label.pack(anchor="w")
         
-        exp_button_frame = ctk.CTkFrame(exp_frame)
-        exp_button_frame.grid(row=1, column=0, columnspan=2, pady=2)
+        button_frame = ctk.CTkFrame(self.version_frame)
+        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
         
-        ctk.CTkButton(exp_button_frame, text="Download Latest", 
+        self.download_button = ctk.CTkButton(button_frame, text="Download Latest", 
                      command=lambda: self.download_version("experimental"),
                      width=100,
-                     height=28).pack(side="left", padx=2)
-        ctk.CTkButton(exp_button_frame, text="Launch", 
+                     height=28)
+        self.download_button.pack(side="left", padx=2)
+        
+        self.launch_button = ctk.CTkButton(button_frame, text="Launch", 
                      command=lambda: self.launch_game("experimental"),
                      width=80,
-                     height=28).pack(side="left", padx=2)
-        ctk.CTkButton(exp_button_frame, text="Open Folder", 
+                     height=28)
+        self.launch_button.pack(side="left", padx=2)
+        
+        self.folder_button = ctk.CTkButton(button_frame, text="Open Folder", 
                      command=lambda: self.open_folder("experimental"),
                      width=90,
-                     height=28).pack(side="left", padx=2)
+                     height=28)
+        self.folder_button.pack(side="left", padx=2)
         
-        # Stable Version
-        stable_frame = ctk.CTkFrame(self.cdda_frame)
-        stable_frame.grid(row=1, column=0, padx=5, pady=2, sticky="ew")
-        stable_frame.grid_columnconfigure(1, weight=1)
+        # Add variable to track current CDDA version type
+        self.showing_experimental = True
+
+    def toggle_cdda_version(self):
+        self.showing_experimental = not self.showing_experimental
+        if self.showing_experimental:
+            self.version_title.configure(text="Experimental Version:")
+            self.download_button.configure(command=lambda: self.download_version("experimental"))
+            self.launch_button.configure(command=lambda: self.launch_game("experimental"))
+            self.folder_button.configure(command=lambda: self.open_folder("experimental"))
+            title_frame = self.version_title.winfo_parent()
+            for widget in ctk.CTkButton.winfo_children(title_frame):
+                if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Switch to Stable":
+                    widget.configure(text="Switch to Stable")
+        else:
+            self.version_title.configure(text="Stable Version:")
+            self.download_button.configure(command=lambda: self.download_version("stable"))
+            self.launch_button.configure(command=lambda: self.launch_game("stable"))
+            self.folder_button.configure(command=lambda: self.open_folder("stable"))
+            title_frame = self.version_title.winfo_parent()
+            for widget in ctk.CTkButton.winfo_children(title_frame):
+                if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Switch to Experimental":
+                    widget.configure(text="Switch to Experimental")
+        self.check_installed_versions()
+
+    def check_installed_versions(self):
+        exp_version = self.get_version(self.experimental_path, self.installed_experimental_version)
+        stable_version = self.get_version(self.stable_path, self.installed_stable_version)
+        bn_version = self.get_version(self.bn_path, self.installed_bn_version)
+        dcss_version = self.get_version(self.dcss_path, self.installed_dcss_version)
         
-        # Title for stable version
-        stable_title_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
-        stable_title_frame.grid(row=0, column=0, padx=5, pady=2)
-        
-        ctk.CTkLabel(stable_title_frame, text="Stable Version:", 
-                    font=ctk.CTkFont(weight="bold", size=13)).pack(side="left", padx=(0,5))
-        
-        # Split version display into two labels
-        stable_version_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
-        stable_version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")
-        self.stable_latest_label = ctk.CTkLabel(stable_version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.stable_latest_label.pack(anchor="w")
-        self.stable_installed_label = ctk.CTkLabel(stable_version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.stable_installed_label.pack(anchor="w")
-        
-        stable_button_frame = ctk.CTkFrame(stable_frame)
-        stable_button_frame.grid(row=1, column=0, columnspan=2, pady=2)
-        
-        ctk.CTkButton(stable_button_frame, text="Download Latest", 
-                     command=lambda: self.download_version("stable"),
-                     width=100,
-                     height=28).pack(side="left", padx=2)
-        ctk.CTkButton(stable_button_frame, text="Launch", 
-                     command=lambda: self.launch_game("stable"),
-                     width=80,
-                     height=28).pack(side="left", padx=2)
-        ctk.CTkButton(stable_button_frame, text="Open Folder", 
-                     command=lambda: self.open_folder("stable"),
-                     width=90,
-                     height=28).pack(side="left", padx=2)
+        if self.showing_experimental:
+            # Update experimental version display
+            is_exp_latest = exp_version == self.latest_experimental_mac_tag
+            latest_text = f"Latest:         {self.latest_experimental_tag}"
+            mac_build_text = f"Mac build:      {self.latest_experimental_mac_tag}"
+            installed_text = f"Installed:      {exp_version if exp_version else 'Not installed'}"
+            
+            if exp_version and is_exp_latest:
+                installed_text += " ✓"
+            if self.latest_experimental_tag != self.latest_experimental_mac_tag:
+                installed_text += "\nLatest Mac Build and Latest Build do not match,\nupdate coming soon"
+            
+            self.version_latest_label.configure(
+                text=f"{latest_text}\n{mac_build_text}",
+                text_color=("yellow" if not is_exp_latest else "white"),
+                justify="left"
+            )
+            self.version_installed_label.configure(
+                text=installed_text,
+                text_color="green" if is_exp_latest else "white",
+                justify="left"
+            )
+        else:
+            # Update stable version display
+            is_stable_latest = stable_version == self.latest_stable_tag
+            latest_text = f"Latest:         {self.latest_stable_tag}"
+            installed_text = f"Installed:      {stable_version if stable_version else 'Not installed'}"
+            if stable_version and is_stable_latest:
+                installed_text += " ✓"
+            
+            self.version_latest_label.configure(
+                text=latest_text,
+                text_color=("yellow" if not is_stable_latest else "white"),
+                justify="left"
+            )
+            self.version_installed_label.configure(
+                text=installed_text,
+                text_color="green" if is_stable_latest else "white",
+                justify="left"
+            )
 
     def switch_game(self, game):
         # First, remove all frames
@@ -510,83 +558,6 @@ class CDDALauncher(ctk.CTk):
         thread = threading.Thread(target=check)
         thread.daemon = True
         thread.start()
-
-    def check_installed_versions(self):
-        exp_version = self.get_version(self.experimental_path, self.installed_experimental_version)
-        stable_version = self.get_version(self.stable_path, self.installed_stable_version)
-        bn_version = self.get_version(self.bn_path, self.installed_bn_version)
-        dcss_version = self.get_version(self.dcss_path, self.installed_dcss_version)
-        
-        # Update experimental version display
-        is_exp_latest = exp_version == self.latest_experimental_mac_tag
-        latest_text = f"Latest:         {self.latest_experimental_tag}"
-        mac_build_text = f"Mac build:      {self.latest_experimental_mac_tag}"
-        installed_text = f"Installed:      {exp_version if exp_version else 'Not installed'}"
-        
-        if exp_version and is_exp_latest:
-            installed_text += " ✓"
-        if self.latest_experimental_tag != self.latest_experimental_mac_tag:
-            installed_text += "\nLatest Mac Build and Latest Build do not match,\nupdate coming soon"
-        
-        self.exp_latest_label.configure(
-            text=f"{latest_text}\n{mac_build_text}",
-            text_color=("yellow" if not is_exp_latest else "white"),
-            justify="left"
-        )
-        self.exp_installed_label.configure(
-            text=installed_text,
-            text_color="green" if is_exp_latest else "white",
-            justify="left"
-        )
-        
-        # Update stable version display
-        is_stable_latest = stable_version == self.latest_stable_tag
-        latest_text = f"Latest:         {self.latest_stable_tag}"
-        installed_text = f"Installed:      {stable_version if stable_version else 'Not installed'}"
-        if stable_version and is_stable_latest:
-            installed_text += " ✓"
-        
-        self.stable_latest_label.configure(
-            text=latest_text,
-            text_color=("yellow" if not is_stable_latest else "white"),
-            justify="left"
-        )
-        self.stable_installed_label.configure(
-            text=installed_text,
-            text_color="green" if is_stable_latest else "white",
-            justify="left"
-        )
-        
-        # Update Bright Nights version display
-        is_bn_latest = bn_version == self.latest_bn_tag
-        latest_text = f"Latest:         {self.latest_bn_tag}"
-        installed_text = f"Installed:      {bn_version if bn_version else 'Not installed'}"
-        if bn_version and is_bn_latest:
-            installed_text += " ✓"
-        
-        self.bn_latest_label.configure(
-            text=latest_text,
-            text_color=("yellow" if not is_bn_latest else "white"),
-            justify="left"
-        )
-        self.bn_installed_label.configure(
-            text=installed_text,
-            text_color="green" if is_bn_latest else "white",
-            justify="left"
-        )
-        
-        # Update DCSS version display
-        is_dcss_latest = dcss_version == self.latest_dcss_tag
-        latest_text = f"Latest:         {self.latest_dcss_tag}"
-        installed_text = f"Installed:      {dcss_version if dcss_version else 'Not installed'}"
-        if dcss_version and is_dcss_latest:
-            installed_text += " ✓"
-        
-        self.dcss_latest_label.configure(
-            text=latest_text,
-            text_color=("yellow" if not is_dcss_latest else "white"),
-            justify="left"
-        )
 
     def download_version(self, version_type):
         if version_type == "experimental":

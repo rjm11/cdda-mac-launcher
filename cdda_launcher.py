@@ -213,7 +213,7 @@ class CDDALauncher(ctk.CTk):
         self.version_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
         self.version_frame.grid_columnconfigure(1, weight=1)
         
-        # Title with refresh and toggle buttons
+        # Title with refresh button
         title_frame = ctk.CTkFrame(self.version_frame, fg_color="transparent")
         title_frame.grid(row=0, column=0, padx=5, pady=2)
         
@@ -227,12 +227,6 @@ class CDDALauncher(ctk.CTk):
                      width=20,
                      height=20).pack(side="left", padx=2)
         
-        ctk.CTkButton(title_frame,
-                     text="Switch to Stable",
-                     command=self.toggle_cdda_version,
-                     width=100,
-                     height=20).pack(side="left", padx=2)
-        
         # Split version display into two labels
         version_info_frame = ctk.CTkFrame(self.version_frame, fg_color="transparent")
         version_info_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")
@@ -241,8 +235,20 @@ class CDDALauncher(ctk.CTk):
         self.version_installed_label = ctk.CTkLabel(version_info_frame, text="", font=ctk.CTkFont(family="Courier"))
         self.version_installed_label.pack(anchor="w")
         
+        # Version toggle button in its own frame
+        toggle_frame = ctk.CTkFrame(self.version_frame, fg_color="transparent")
+        toggle_frame.grid(row=0, column=2, padx=5, pady=2, sticky="e")
+        
+        self.version_toggle = ctk.CTkButton(toggle_frame,
+                     text="Switch to Stable",
+                     command=self.toggle_cdda_version,
+                     width=100,
+                     height=20)
+        self.version_toggle.pack(side="right", padx=2)
+        
+        # Button frame
         button_frame = ctk.CTkFrame(self.version_frame)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
+        button_frame.grid(row=1, column=0, columnspan=3, pady=2)
         
         self.download_button = ctk.CTkButton(button_frame, text="Download Latest", 
                      command=lambda: self.download_version("experimental"),
@@ -335,22 +341,18 @@ class CDDALauncher(ctk.CTk):
         self.showing_experimental = not self.showing_experimental
         if self.showing_experimental:
             self.version_title.configure(text="Experimental Version:")
+            self.version_toggle.configure(text="Switch to Stable")
             self.download_button.configure(command=lambda: self.download_version("experimental"))
             self.launch_button.configure(command=lambda: self.launch_game("experimental"))
             self.folder_button.configure(command=lambda: self.open_folder("experimental"))
-            title_frame = self.version_title.winfo_parent()
-            for widget in ctk.CTkButton.winfo_children(title_frame):
-                if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Switch to Stable":
-                    widget.configure(text="Switch to Stable")
         else:
             self.version_title.configure(text="Stable Version:")
+            self.version_toggle.configure(text="Switch to Experimental")
             self.download_button.configure(command=lambda: self.download_version("stable"))
             self.launch_button.configure(command=lambda: self.launch_game("stable"))
             self.folder_button.configure(command=lambda: self.open_folder("stable"))
-            title_frame = self.version_title.winfo_parent()
-            for widget in ctk.CTkButton.winfo_children(title_frame):
-                if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Switch to Experimental":
-                    widget.configure(text="Switch to Experimental")
+        
+        # Update version display immediately
         self.check_installed_versions()
 
     def check_installed_versions(self):

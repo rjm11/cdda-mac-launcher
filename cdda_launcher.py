@@ -111,10 +111,11 @@ class CDDALauncher(ctk.CTk):
         self.experimental_path = os.path.join(self.base_path, "experimental")
         self.stable_path = os.path.join(self.base_path, "stable")
         self.bn_path = os.path.join(self.base_path, "bn")
+        self.dcss_path = os.path.join(self.base_path, "dcss")
         self.version_file = os.path.join(self.base_path, "versions.json")
         
         # Create directories if they don't exist
-        for path in [self.base_path, self.experimental_path, self.stable_path, self.bn_path]:
+        for path in [self.base_path, self.experimental_path, self.stable_path, self.bn_path, self.dcss_path]:
             os.makedirs(path, exist_ok=True)
         
         # Load saved versions
@@ -128,6 +129,7 @@ class CDDALauncher(ctk.CTk):
         self.installed_experimental_version = None
         self.installed_stable_version = None
         self.installed_bn_version = None
+        self.installed_dcss_version = None
         
         # Try to load saved versions
         if os.path.exists(self.version_file):
@@ -137,6 +139,7 @@ class CDDALauncher(ctk.CTk):
                     self.installed_experimental_version = versions.get('experimental')
                     self.installed_stable_version = versions.get('stable')
                     self.installed_bn_version = versions.get('bn')
+                    self.installed_dcss_version = versions.get('dcss')
             except (json.JSONDecodeError, IOError):
                 pass  # If there's any error reading, keep the default None values
 
@@ -144,7 +147,8 @@ class CDDALauncher(ctk.CTk):
         versions = {
             'experimental': self.installed_experimental_version,
             'stable': self.installed_stable_version,
-            'bn': self.installed_bn_version
+            'bn': self.installed_bn_version,
+            'dcss': self.installed_dcss_version
         }
         try:
             with open(self.version_file, 'w') as f:
@@ -175,6 +179,13 @@ class CDDALauncher(ctk.CTk):
                                      width=120,
                                      height=28)
         self.bn_button.pack(side="left", padx=5)
+        
+        self.dcss_button = ctk.CTkButton(button_frame,
+                                     text="DCSS",
+                                     command=lambda: self.switch_game("dcss"),
+                                     width=120,
+                                     height=28)
+        self.dcss_button.pack(side="left", padx=5)
         
         # CDDA Frame
         self.cdda_frame = ctk.CTkFrame(self)
@@ -302,8 +313,45 @@ class CDDALauncher(ctk.CTk):
                      width=90,
                      height=28).pack(side="left", padx=2)
         
-        # Initially hide BN frame
-        self.bn_frame.grid_remove()
+        # DCSS Frame
+        self.dcss_frame = ctk.CTkFrame(self)
+        self.dcss_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
+        self.dcss_frame.grid_columnconfigure(0, weight=1)
+        
+        # DCSS Version
+        dcss_version_frame = ctk.CTkFrame(self.dcss_frame)
+        dcss_version_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
+        dcss_version_frame.grid_columnconfigure(1, weight=1)
+        
+        ctk.CTkLabel(dcss_version_frame, text="Latest Version:", 
+                    font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5)
+        
+        # Version display
+        version_frame = ctk.CTkFrame(dcss_version_frame, fg_color="transparent")
+        version_frame.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        self.dcss_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
+        self.dcss_latest_label.pack(anchor="w")
+        
+        button_frame = ctk.CTkFrame(dcss_version_frame)
+        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
+        
+        ctk.CTkButton(button_frame, text="Download Latest", 
+                     command=lambda: self.download_version("dcss"),
+                     width=100,
+                     height=28).pack(side="left", padx=2)
+        
+        ctk.CTkButton(button_frame, text="Play Online", 
+                     command=self.play_dcss_online,
+                     width=100,
+                     height=28).pack(side="left", padx=2)
+        
+        ctk.CTkButton(button_frame, text="Open Folder", 
+                     command=lambda: self.open_folder("dcss"),
+                     width=90,
+                     height=28).pack(side="left", padx=2)
+        
+        # Initially hide DCSS frame
+        self.dcss_frame.grid_remove()
         
         # Progress bar and status in a separate frame
         status_frame = ctk.CTkFrame(self)
@@ -363,9 +411,11 @@ class CDDALauncher(ctk.CTk):
         if game == "cdda" and not self.showing_cdda:
             self.showing_cdda = True
             self.bn_frame.grid_remove()
+            self.dcss_frame.grid_remove()
             self.cdda_frame.grid()
             self.cdda_button.configure(fg_color=("gray75", "gray25"))
             self.bn_button.configure(fg_color=None)
+            self.dcss_button.configure(fg_color=None)
             self.title("CDDA Mac Launcher")
             # Show CDDA patch notes toggle
             self.toggle_button.grid()
@@ -380,15 +430,31 @@ class CDDALauncher(ctk.CTk):
         elif game == "bn" and self.showing_cdda:
             self.showing_cdda = False
             self.cdda_frame.grid_remove()
+            self.dcss_frame.grid_remove()
             self.bn_frame.grid()
             self.bn_button.configure(fg_color=("gray75", "gray25"))
             self.cdda_button.configure(fg_color=None)
+            self.dcss_button.configure(fg_color=None)
             self.title("Bright Nights Mac Launcher")
             # Hide CDDA patch notes toggle and show BN notes
             self.toggle_button.grid_remove()
             self.patch_notes_label.configure(text="Latest Patch Notes:")
             self.patch_notes.delete("0.0", "end")
             self.patch_notes.insert("0.0", self.bn_patch_notes)
+        elif game == "dcss":
+            self.showing_cdda = False
+            self.cdda_frame.grid_remove()
+            self.bn_frame.grid_remove()
+            self.dcss_frame.grid()
+            self.dcss_button.configure(fg_color=("gray75", "gray25"))
+            self.cdda_button.configure(fg_color=None)
+            self.bn_button.configure(fg_color=None)
+            self.title("DCSS Launcher")
+            # Hide CDDA patch notes toggle and show DCSS notes
+            self.toggle_button.grid_remove()
+            self.patch_notes_label.configure(text="Latest DCSS Notes:")
+            self.patch_notes.delete("0.0", "end")
+            self.patch_notes.insert("0.0", self.dcss_patch_notes)
 
     def toggle_patch_notes(self):
         self.showing_experimental_notes = not self.showing_experimental_notes
@@ -520,6 +586,44 @@ class CDDALauncher(ctk.CTk):
                         self.patch_notes.delete("0.0", "end")
                         self.patch_notes.insert("0.0", self.stable_patch_notes)
                 
+                # Check DCSS version
+                dcss_response = requests.get("https://api.github.com/repos/crawl/crawl/releases/latest")
+                dcss_info = json.loads(dcss_response.text)
+                self.latest_dcss_tag = dcss_info['tag_name']
+                self.dcss_patch_notes = dcss_info.get("body", "No patch notes available")
+                
+                # Find Mac OS X DCSS build
+                self.latest_dcss_url = None
+                for asset in dcss_info["assets"]:
+                    name = asset["name"].lower()
+                    if "mac" in name or "osx" in name or "darwin" in name:
+                        self.latest_dcss_url = asset["browser_download_url"]
+                        break
+                
+                # Update DCSS version display
+                dcss_version = self.get_version(self.dcss_path, self.installed_dcss_version)
+                is_dcss_latest = dcss_version == self.latest_dcss_tag
+                
+                latest_text = f"Latest:        {self.latest_dcss_tag}"
+                installed_text = f"Installed:     {dcss_version if dcss_version else 'Not installed'}"
+                if dcss_version and is_dcss_latest:
+                    installed_text += " ✓"
+                
+                self.dcss_latest_label.configure(
+                    text=latest_text,
+                    text_color=("yellow" if not is_dcss_latest else "white")
+                )
+                
+                # Update patch notes display based on current view
+                if not self.showing_cdda:
+                    if hasattr(self, 'dcss_frame') and not self.dcss_frame.winfo_ismapped():
+                        if self.showing_experimental_notes:
+                            self.patch_notes.delete("0.0", "end")
+                            self.patch_notes.insert("0.0", self.experimental_patch_notes)
+                        else:
+                            self.patch_notes.delete("0.0", "end")
+                            self.patch_notes.insert("0.0", self.stable_patch_notes)
+                
                 self.check_installed_versions()
                 
             except Exception as e:
@@ -534,6 +638,7 @@ class CDDALauncher(ctk.CTk):
         exp_version = self.get_version(self.experimental_path, self.installed_experimental_version)
         stable_version = self.get_version(self.stable_path, self.installed_stable_version)
         bn_version = self.get_version(self.bn_path, self.installed_bn_version)
+        dcss_version = self.get_version(self.dcss_path, self.installed_dcss_version)
         
         # Update experimental version display
         is_exp_latest = exp_version == self.latest_experimental_mac_tag
@@ -585,6 +690,18 @@ class CDDALauncher(ctk.CTk):
             text=installed_text,
             text_color="green" if is_bn_latest else "white"
         )
+        
+        # Update DCSS version display
+        is_dcss_latest = dcss_version == self.latest_dcss_tag
+        latest_text = f"Latest:        {self.latest_dcss_tag}"
+        installed_text = f"Installed:     {dcss_version if dcss_version else 'Not installed'}"
+        if dcss_version and is_dcss_latest:
+            installed_text += " ✓"
+        
+        self.dcss_latest_label.configure(
+            text=latest_text,
+            text_color=("yellow" if not is_dcss_latest else "white")
+        )
 
     def download_version(self, version_type):
         if version_type == "experimental":
@@ -599,9 +716,14 @@ class CDDALauncher(ctk.CTk):
         elif version_type == "stable":
             url = self.latest_stable_url
             version_tag = self.latest_stable_tag
+        elif version_type == "dcss":
+            url = self.latest_dcss_url
+            version_tag = self.latest_dcss_tag
+            path = self.dcss_path
         else:  # bn
             url = self.latest_bn_url
             version_tag = self.latest_bn_tag
+            path = self.bn_path
         
         if not url:
             self.status_text.set(f"No Mac download found for {version_type} version")
@@ -657,45 +779,17 @@ class CDDALauncher(ctk.CTk):
                     if not app_name:
                         raise Exception("Could not find .app in mounted DMG")
                     
-                    target_path = self.experimental_path if version_type == "experimental" else self.stable_path
-                    
-                    # Backup important user data
-                    save_data = {}
-                    important_folders = ['save', 'save_backups', 'graveyard', 'memorial', 'templates']
-                    
-                    if os.path.exists(target_path):
-                        app_contents = [f for f in os.listdir(target_path) if f.endswith('.app')]
-                        if app_contents:
-                            current_app = os.path.join(target_path, app_contents[0])
-                            data_path = os.path.join(current_app, 'Contents/Resources/data')
-                            if os.path.exists(data_path):
-                                for folder in important_folders:
-                                    folder_path = os.path.join(data_path, folder)
-                                    if os.path.exists(folder_path):
-                                        save_data[folder] = folder_path
-                    
                     # Clear existing installation
-                    if os.path.exists(target_path):
+                    if os.path.exists(path):
                         self.status_text.set("Removing old version...")
-                        shutil.rmtree(target_path, ignore_errors=True)
-                    os.makedirs(target_path, exist_ok=True)
+                        shutil.rmtree(path, ignore_errors=True)
+                    os.makedirs(path, exist_ok=True)
                     
                     # Copy the .app
                     self.status_text.set("Installing new version...")
                     source_app = os.path.join(mount_point, app_name)
-                    target_app = os.path.join(target_path, app_name)
+                    target_app = os.path.join(path, app_name)
                     shutil.copytree(source_app, target_app, symlinks=True)
-                    
-                    # Restore user data
-                    if save_data:
-                        self.status_text.set("Restoring save data...")
-                        new_data_path = os.path.join(target_app, 'Contents/Resources/data')
-                        for folder, old_path in save_data.items():
-                            new_folder_path = os.path.join(new_data_path, folder)
-                            if os.path.exists(old_path):
-                                if os.path.exists(new_folder_path):
-                                    shutil.rmtree(new_folder_path)
-                                shutil.copytree(old_path, new_folder_path, symlinks=True)
                     
                     # Unmount the DMG
                     self.status_text.set("Cleaning up...")
@@ -705,10 +799,14 @@ class CDDALauncher(ctk.CTk):
                     self.progress_bar.set(1)
                     
                     # Update tracked version after successful installation
-                    if version_type == "experimental":
+                    if version_type == "dcss":
+                        self.installed_dcss_version = version_tag
+                    elif version_type == "experimental":
                         self.installed_experimental_version = version_tag
-                    else:
+                    elif version_type == "stable":
                         self.installed_stable_version = version_tag
+                    else:  # bn
+                        self.installed_bn_version = version_tag
                     
                     # Save versions after successful installation
                     self.save_versions()
@@ -741,7 +839,14 @@ class CDDALauncher(ctk.CTk):
         self.status_text.set(f"Launching {version_type} version...")
 
     def open_folder(self, version_type):
-        path = self.experimental_path if version_type == "experimental" else self.stable_path
+        if version_type == "experimental":
+            path = self.experimental_path
+        elif version_type == "stable":
+            path = self.stable_path
+        elif version_type == "dcss":
+            path = self.dcss_path
+        else:  # bn
+            path = self.bn_path
         subprocess.Popen(["open", path])
 
     def on_closing(self):
@@ -749,8 +854,8 @@ class CDDALauncher(ctk.CTk):
         self.quit()
 
     def open_github_notes(self):
-        base_url = "https://github.com/CleverRaven/Cataclysm-DDA/releases"
         if self.showing_cdda:
+            base_url = "https://github.com/CleverRaven/Cataclysm-DDA/releases"
             if self.showing_experimental_notes:
                 if self.latest_experimental_tag:
                     url = f"{base_url}/tag/{self.latest_experimental_tag}"
@@ -761,6 +866,12 @@ class CDDALauncher(ctk.CTk):
                     url = f"{base_url}/tag/{self.latest_stable_tag}"
                 else:
                     url = f"{base_url}/latest"
+        elif hasattr(self, 'dcss_frame') and self.dcss_frame.winfo_ismapped():
+            # For DCSS
+            if self.latest_dcss_tag:
+                url = f"https://github.com/crawl/crawl/releases/tag/{self.latest_dcss_tag}"
+            else:
+                url = "https://github.com/crawl/crawl/releases"
         else:
             # For Bright Nights
             if self.latest_bn_tag:
@@ -769,6 +880,9 @@ class CDDALauncher(ctk.CTk):
                 url = "https://github.com/cataclysmbnteam/Cataclysm-BN/releases"
         
         webbrowser.open(url)
+
+    def play_dcss_online(self):
+        webbrowser.open("https://crawl.akrasiac.org:8443/#lobby")
 
 if __name__ == "__main__":
     app = CDDALauncher()

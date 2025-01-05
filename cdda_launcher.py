@@ -265,6 +265,72 @@ class CDDALauncher(ctk.CTk):
         # Add variable to track current CDDA version type
         self.showing_experimental = True
 
+    def _create_bn_frame(self):
+        # Bright Nights Frame
+        self.bn_frame = ctk.CTkFrame(self)
+        self.bn_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
+        self.bn_frame.grid_columnconfigure(0, weight=1)
+        
+        # Bright Nights Version
+        bn_version_frame = ctk.CTkFrame(self.bn_frame)
+        bn_version_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
+        bn_version_frame.grid_columnconfigure(1, weight=1)
+        
+        ctk.CTkLabel(bn_version_frame, text="Latest Version:", 
+                    font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5)
+        
+        # Split version display into two labels
+        version_frame = ctk.CTkFrame(bn_version_frame, fg_color="transparent")
+        version_frame.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        self.bn_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
+        self.bn_latest_label.pack(anchor="w")
+        self.bn_installed_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
+        self.bn_installed_label.pack(anchor="w")
+        
+        button_frame = ctk.CTkFrame(bn_version_frame)
+        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
+        
+        ctk.CTkButton(button_frame, text="Download Latest", 
+                     command=lambda: self.download_version("bn"),
+                     width=100,
+                     height=28).pack(side="left", padx=2)
+        ctk.CTkButton(button_frame, text="Launch", 
+                     command=lambda: self.launch_game("bn"),
+                     width=80,
+                     height=28).pack(side="left", padx=2)
+        ctk.CTkButton(button_frame, text="Open Folder", 
+                     command=lambda: self.open_folder("bn"),
+                     width=90,
+                     height=28).pack(side="left", padx=2)
+
+    def _create_dcss_frame(self):
+        # DCSS Frame
+        self.dcss_frame = ctk.CTkFrame(self)
+        self.dcss_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
+        self.dcss_frame.grid_columnconfigure(0, weight=1)
+        
+        # DCSS Version
+        dcss_version_frame = ctk.CTkFrame(self.dcss_frame)
+        dcss_version_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
+        dcss_version_frame.grid_columnconfigure(1, weight=1)
+        
+        ctk.CTkLabel(dcss_version_frame, text="Latest Version:", 
+                    font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5)
+        
+        # Version display
+        version_frame = ctk.CTkFrame(dcss_version_frame, fg_color="transparent")
+        version_frame.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        self.dcss_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
+        self.dcss_latest_label.pack(anchor="w")
+        
+        button_frame = ctk.CTkFrame(dcss_version_frame)
+        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
+        
+        ctk.CTkButton(button_frame, text="Play Online", 
+                     command=self.play_dcss_online,
+                     width=100,
+                     height=28).pack(side="left", padx=2)
+
     def toggle_cdda_version(self):
         self.showing_experimental = not self.showing_experimental
         if self.showing_experimental:

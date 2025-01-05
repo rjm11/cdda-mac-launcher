@@ -504,31 +504,6 @@ class CDDALauncher(ctk.CTk):
                         if found_mac_build:
                             break
                 
-                # Update experimental version display
-                exp_version = self.get_version(self.experimental_path, self.installed_experimental_version)
-                # Compare against Mac build tag instead of latest experimental tag
-                is_exp_latest = exp_version == self.latest_experimental_mac_tag
-                
-                if self.latest_experimental_mac_tag and self.latest_experimental_tag != self.latest_experimental_mac_tag:
-                    latest_text = f"Latest: {self.latest_experimental_tag}\nMac build: {self.latest_experimental_mac_tag}"
-                    if exp_version != self.latest_experimental_mac_tag:
-                        latest_text += "\n(Newer Mac build may come soon)"
-                else:
-                    latest_text = f"Latest: {self.latest_experimental_tag}"
-                
-                installed_text = f"Installed: {exp_version if exp_version else 'Not installed'}"
-                if exp_version and is_exp_latest:
-                    installed_text += " ✓"
-                
-                self.exp_latest_label.configure(
-                    text=latest_text,
-                    text_color=("yellow" if not is_exp_latest else "white")
-                )
-                self.exp_installed_label.configure(
-                    text=installed_text,
-                    text_color="green" if is_exp_latest else "white"
-                )
-                
                 # Check stable version
                 stable_response = requests.get("https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases/latest")
                 stable_info = json.loads(stable_response.text)
@@ -556,9 +531,6 @@ class CDDALauncher(ctk.CTk):
                     
                     # Store BN patch notes
                     self.bn_patch_notes = bn_info.get("body", "No patch notes available")
-                    if not self.showing_cdda:
-                        self.patch_notes.delete("0.0", "end")
-                        self.patch_notes.insert("0.0", self.bn_patch_notes)
                     
                     # Find Mac OS X BN build with tiles
                     self.latest_bn_url = None
@@ -567,15 +539,6 @@ class CDDALauncher(ctk.CTk):
                         if "osx" in name and ("tiles" in name or "graphics" in name) and name.endswith(".dmg"):
                             self.latest_bn_url = asset["browser_download_url"]
                             break
-                
-                # Update patch notes display based on current view
-                if self.showing_cdda:
-                    if self.showing_experimental_notes:
-                        self.patch_notes.delete("0.0", "end")
-                        self.patch_notes.insert("0.0", self.experimental_patch_notes)
-                    else:
-                        self.patch_notes.delete("0.0", "end")
-                        self.patch_notes.insert("0.0", self.stable_patch_notes)
                 
                 # Check DCSS version
                 dcss_response = requests.get("https://api.github.com/repos/crawl/crawl/releases/latest")
@@ -591,31 +554,25 @@ class CDDALauncher(ctk.CTk):
                         self.latest_dcss_url = asset["browser_download_url"]
                         break
                 
-                # Update DCSS version display
-                dcss_version = self.get_version(self.dcss_path, self.installed_dcss_version)
-                is_dcss_latest = dcss_version == self.latest_dcss_tag
-                
-                latest_text = f"Latest:        {self.latest_dcss_tag}"
-                installed_text = f"Installed:     {dcss_version if dcss_version else 'Not installed'}"
-                if dcss_version and is_dcss_latest:
-                    installed_text += " ✓"
-                
-                self.dcss_latest_label.configure(
-                    text=latest_text,
-                    text_color=("yellow" if not is_dcss_latest else "white")
-                )
-                
-                # Update patch notes display based on current view
-                if not self.showing_cdda:
-                    if hasattr(self, 'dcss_frame') and not self.dcss_frame.winfo_ismapped():
-                        if self.showing_experimental_notes:
-                            self.patch_notes.delete("0.0", "end")
-                            self.patch_notes.insert("0.0", self.experimental_patch_notes)
-                        else:
-                            self.patch_notes.delete("0.0", "end")
-                            self.patch_notes.insert("0.0", self.stable_patch_notes)
-                
+                # Update version displays
                 self.check_installed_versions()
+                
+                # Update patch notes based on current view
+                if self.showing_cdda:
+                    if self.showing_experimental_notes:
+                        self.patch_notes.delete("0.0", "end")
+                        self.patch_notes.insert("0.0", self.experimental_patch_notes)
+                    else:
+                        self.patch_notes.delete("0.0", "end")
+                        self.patch_notes.insert("0.0", self.stable_patch_notes)
+                elif hasattr(self, 'dcss_frame') and self.dcss_frame.winfo_ismapped():
+                    self.patch_notes.delete("0.0", "end")
+                    self.patch_notes.insert("0.0", self.dcss_patch_notes)
+                else:
+                    self.patch_notes.delete("0.0", "end")
+                    self.patch_notes.insert("0.0", self.bn_patch_notes)
+                
+                self.status_text.set("Ready")
                 
             except Exception as e:
                 self.status_text.set(f"Error checking versions: {str(e)}")

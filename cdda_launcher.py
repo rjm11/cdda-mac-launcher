@@ -187,32 +187,48 @@ class CDDALauncher(ctk.CTk):
                                      height=28)
         self.dcss_button.pack(side="left", padx=5)
         
+        # Create game frames
+        self._create_cdda_frame()
+        self._create_bn_frame()
+        self._create_dcss_frame()
+        
+        # Initially hide BN and DCSS frames
+        self.bn_frame.grid_remove()
+        self.dcss_frame.grid_remove()
+        
+        # Progress bar and status in a separate frame
+        self._create_status_frame()
+        
+        # Patch Notes Frame
+        self._create_patch_notes_frame()
+        
+    def _create_cdda_frame(self):
         # CDDA Frame
         self.cdda_frame = ctk.CTkFrame(self)
-        self.cdda_frame.grid(row=1, column=0, padx=15, pady=2, sticky="ew")  # Slightly more horizontal padding
+        self.cdda_frame.grid(row=1, column=0, padx=15, pady=2, sticky="ew")
         self.cdda_frame.grid_columnconfigure(0, weight=1)
         
         # Experimental Version
         exp_frame = ctk.CTkFrame(self.cdda_frame)
-        exp_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")  # Reduced padding
+        exp_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
         exp_frame.grid_columnconfigure(1, weight=1)
         
         # Title with refresh button
         title_frame = ctk.CTkFrame(exp_frame, fg_color="transparent")
-        title_frame.grid(row=0, column=0, padx=5, pady=2)  # Reduced padding
+        title_frame.grid(row=0, column=0, padx=5, pady=2)
         
         ctk.CTkLabel(title_frame, text="Experimental Version:", 
-                    font=ctk.CTkFont(weight="bold", size=13)).pack(side="left", padx=(0,5))  # Smaller font
+                    font=ctk.CTkFont(weight="bold", size=13)).pack(side="left", padx=(0,5))
         
         ctk.CTkButton(title_frame,
                      text="↻",
                      command=self.check_versions,
-                     width=20,  # Smaller refresh button
+                     width=20,
                      height=20).pack(side="left")
         
         # Split version display into two labels
         version_frame = ctk.CTkFrame(exp_frame, fg_color="transparent")
-        version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")  # More horizontal padding
+        version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")
         self.exp_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
         self.exp_latest_label.pack(anchor="w")
         self.exp_installed_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
@@ -236,19 +252,19 @@ class CDDALauncher(ctk.CTk):
         
         # Stable Version
         stable_frame = ctk.CTkFrame(self.cdda_frame)
-        stable_frame.grid(row=1, column=0, padx=5, pady=2, sticky="ew")  # Reduced padding
+        stable_frame.grid(row=1, column=0, padx=5, pady=2, sticky="ew")
         stable_frame.grid_columnconfigure(1, weight=1)
         
         # Title for stable version
         stable_title_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
-        stable_title_frame.grid(row=0, column=0, padx=5, pady=2)  # Reduced padding
+        stable_title_frame.grid(row=0, column=0, padx=5, pady=2)
         
         ctk.CTkLabel(stable_title_frame, text="Stable Version:", 
-                    font=ctk.CTkFont(weight="bold", size=13)).pack(side="left", padx=(0,5))  # Smaller font
+                    font=ctk.CTkFont(weight="bold", size=13)).pack(side="left", padx=(0,5))
         
         # Split version display into two labels
         stable_version_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
-        stable_version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")  # More horizontal padding
+        stable_version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")
         self.stable_latest_label = ctk.CTkLabel(stable_version_frame, text="", font=ctk.CTkFont(family="Courier"))
         self.stable_latest_label.pack(anchor="w")
         self.stable_installed_label = ctk.CTkLabel(stable_version_frame, text="", font=ctk.CTkFont(family="Courier"))
@@ -269,147 +285,22 @@ class CDDALauncher(ctk.CTk):
                      command=lambda: self.open_folder("stable"),
                      width=90,
                      height=28).pack(side="left", padx=2)
-        
-        # Bright Nights Frame
-        self.bn_frame = ctk.CTkFrame(self)
-        self.bn_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
-        self.bn_frame.grid_columnconfigure(0, weight=1)
-        
-        # Bright Nights Version
-        bn_version_frame = ctk.CTkFrame(self.bn_frame)
-        bn_version_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
-        bn_version_frame.grid_columnconfigure(1, weight=1)
-        
-        ctk.CTkLabel(bn_version_frame, text="Latest Version:", 
-                    font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5)
-        
-        # Split version display into two labels
-        version_frame = ctk.CTkFrame(bn_version_frame, fg_color="transparent")
-        version_frame.grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        self.bn_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.bn_latest_label.pack(anchor="w")
-        self.bn_installed_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.bn_installed_label.pack(anchor="w")
-        
-        button_frame = ctk.CTkFrame(bn_version_frame)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
-        
-        ctk.CTkButton(button_frame, text="Download Latest", 
-                     command=lambda: self.download_version("bn"),
-                     width=100,
-                     height=28).pack(side="left", padx=2)
-        ctk.CTkButton(button_frame, text="Launch", 
-                     command=lambda: self.launch_game("bn"),
-                     width=80,
-                     height=28).pack(side="left", padx=2)
-        ctk.CTkButton(button_frame, text="Open Folder", 
-                     command=lambda: self.open_folder("bn"),
-                     width=90,
-                     height=28).pack(side="left", padx=2)
-        
-        # DCSS Frame
-        self.dcss_frame = ctk.CTkFrame(self)
-        self.dcss_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
-        self.dcss_frame.grid_columnconfigure(0, weight=1)
-        
-        # DCSS Version
-        dcss_version_frame = ctk.CTkFrame(self.dcss_frame)
-        dcss_version_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
-        dcss_version_frame.grid_columnconfigure(1, weight=1)
-        
-        ctk.CTkLabel(dcss_version_frame, text="Latest Version:", 
-                    font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5)
-        
-        # Version display
-        version_frame = ctk.CTkFrame(dcss_version_frame, fg_color="transparent")
-        version_frame.grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        self.dcss_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.dcss_latest_label.pack(anchor="w")
-        
-        button_frame = ctk.CTkFrame(dcss_version_frame)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
-        
-        ctk.CTkButton(button_frame, text="Download Latest", 
-                     command=lambda: self.download_version("dcss"),
-                     width=100,
-                     height=28).pack(side="left", padx=2)
-        
-        ctk.CTkButton(button_frame, text="Play Online", 
-                     command=self.play_dcss_online,
-                     width=100,
-                     height=28).pack(side="left", padx=2)
-        
-        ctk.CTkButton(button_frame, text="Open Folder", 
-                     command=lambda: self.open_folder("dcss"),
-                     width=90,
-                     height=28).pack(side="left", padx=2)
-        
-        # Initially hide DCSS frame
-        self.dcss_frame.grid_remove()
-        
-        # Progress bar and status in a separate frame
-        status_frame = ctk.CTkFrame(self)
-        status_frame.grid(row=2, column=0, padx=20, pady=5, sticky="ew")
-        status_frame.grid_columnconfigure(0, weight=1)
-        
-        self.progress_bar = ctk.CTkProgressBar(status_frame)
-        self.progress_bar.grid(row=0, column=0, padx=10, pady=(5,2), sticky="ew")
-        self.progress_bar.set(0)
-        
-        self.status_label = ctk.CTkLabel(status_frame, textvariable=self.status_text)
-        self.status_label.grid(row=1, column=0, padx=10, pady=(2,5), sticky="ew")
-        
-        # Patch Notes Frame
-        self.patch_frame = ctk.CTkFrame(self)
-        self.patch_frame.grid(row=3, column=0, padx=20, pady=5, sticky="nsew")
-        self.patch_frame.grid_columnconfigure(0, weight=1)
-        self.patch_frame.grid_rowconfigure(1, weight=1)
-        
-        # Header frame for patch notes
-        notes_header_frame = ctk.CTkFrame(self.patch_frame, fg_color="transparent")
-        notes_header_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
-        notes_header_frame.grid_columnconfigure(1, weight=1)
-        
-        self.patch_notes_label = ctk.CTkLabel(notes_header_frame, 
-                                            text="Latest Experimental Patch Notes:", 
-                                            font=ctk.CTkFont(weight="bold"))
-        self.patch_notes_label.grid(row=0, column=0, padx=5, sticky="w")
-        
-        button_frame = ctk.CTkFrame(notes_header_frame, fg_color="transparent")
-        button_frame.grid(row=0, column=2, padx=5, sticky="e")
-        
-        self.toggle_button = ctk.CTkButton(button_frame,
-                                         text="View Stable Notes",
-                                         command=self.toggle_patch_notes,
-                                         width=100,
-                                         height=28)
-        self.toggle_button.pack(side="left", padx=(0, 5))
-        
-        self.github_button = ctk.CTkButton(button_frame,
-                                         text="View on Github",
-                                         command=self.open_github_notes,
-                                         width=100,
-                                         height=28)
-        self.github_button.pack(side="left")
-        
-        self.patch_notes = ctk.CTkTextbox(self.patch_frame, wrap="word")
-        self.patch_notes.grid(row=1, column=0, padx=10, pady=(0,10), sticky="nsew")
-        
-        # Add variables for patch notes state
-        self.showing_experimental_notes = True
-        self.stable_patch_notes = ""
-        self.experimental_patch_notes = ""
-        self.bn_patch_notes = ""
 
     def switch_game(self, game):
-        if game == "cdda" and not self.showing_cdda:
+        # First, remove all frames
+        self.cdda_frame.grid_remove()
+        self.bn_frame.grid_remove()
+        self.dcss_frame.grid_remove()
+        
+        # Reset all button colors
+        self.cdda_button.configure(fg_color=None)
+        self.bn_button.configure(fg_color=None)
+        self.dcss_button.configure(fg_color=None)
+        
+        if game == "cdda":
             self.showing_cdda = True
-            self.bn_frame.grid_remove()
-            self.dcss_frame.grid_remove()
-            self.cdda_frame.grid()
+            self.cdda_frame.grid(row=1, column=0, padx=15, pady=2, sticky="ew")
             self.cdda_button.configure(fg_color=("gray75", "gray25"))
-            self.bn_button.configure(fg_color=None)
-            self.dcss_button.configure(fg_color=None)
             self.title("CDDA Mac Launcher")
             # Show CDDA patch notes toggle
             self.toggle_button.grid()
@@ -421,28 +312,20 @@ class CDDALauncher(ctk.CTk):
                 self.patch_notes_label.configure(text="Latest Stable Patch Notes:")
                 self.patch_notes.delete("0.0", "end")
                 self.patch_notes.insert("0.0", self.stable_patch_notes)
-        elif game == "bn" and self.showing_cdda:
+        elif game == "bn":
             self.showing_cdda = False
-            self.cdda_frame.grid_remove()
-            self.dcss_frame.grid_remove()
-            self.bn_frame.grid()
+            self.bn_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
             self.bn_button.configure(fg_color=("gray75", "gray25"))
-            self.cdda_button.configure(fg_color=None)
-            self.dcss_button.configure(fg_color=None)
             self.title("Bright Nights Mac Launcher")
             # Hide CDDA patch notes toggle and show BN notes
             self.toggle_button.grid_remove()
             self.patch_notes_label.configure(text="Latest Patch Notes:")
             self.patch_notes.delete("0.0", "end")
             self.patch_notes.insert("0.0", self.bn_patch_notes)
-        elif game == "dcss":
+        else:  # dcss
             self.showing_cdda = False
-            self.cdda_frame.grid_remove()
-            self.bn_frame.grid_remove()
-            self.dcss_frame.grid()
+            self.dcss_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
             self.dcss_button.configure(fg_color=("gray75", "gray25"))
-            self.cdda_button.configure(fg_color=None)
-            self.bn_button.configure(fg_color=None)
             self.title("DCSS Launcher")
             # Hide CDDA patch notes toggle and show DCSS notes
             self.toggle_button.grid_remove()
@@ -885,6 +768,63 @@ class CDDALauncher(ctk.CTk):
 
     def play_dcss_online(self):
         webbrowser.open("https://crawl.akrasiac.org:8443/#lobby")
+
+    def _create_status_frame(self):
+        # Progress bar and status in a separate frame
+        status_frame = ctk.CTkFrame(self)
+        status_frame.grid(row=2, column=0, padx=20, pady=5, sticky="ew")
+        status_frame.grid_columnconfigure(0, weight=1)
+        
+        self.progress_bar = ctk.CTkProgressBar(status_frame)
+        self.progress_bar.grid(row=0, column=0, padx=10, pady=(5,2), sticky="ew")
+        self.progress_bar.set(0)
+        
+        self.status_label = ctk.CTkLabel(status_frame, textvariable=self.status_text)
+        self.status_label.grid(row=1, column=0, padx=10, pady=(2,5), sticky="ew")
+
+    def _create_patch_notes_frame(self):
+        # Patch Notes Frame
+        self.patch_frame = ctk.CTkFrame(self)
+        self.patch_frame.grid(row=3, column=0, padx=20, pady=5, sticky="nsew")
+        self.patch_frame.grid_columnconfigure(0, weight=1)
+        self.patch_frame.grid_rowconfigure(1, weight=1)
+        
+        # Header frame for patch notes
+        notes_header_frame = ctk.CTkFrame(self.patch_frame, fg_color="transparent")
+        notes_header_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
+        notes_header_frame.grid_columnconfigure(1, weight=1)
+        
+        self.patch_notes_label = ctk.CTkLabel(notes_header_frame, 
+                                            text="Latest Experimental Patch Notes:", 
+                                            font=ctk.CTkFont(weight="bold"))
+        self.patch_notes_label.grid(row=0, column=0, padx=5, sticky="w")
+        
+        button_frame = ctk.CTkFrame(notes_header_frame, fg_color="transparent")
+        button_frame.grid(row=0, column=2, padx=5, sticky="e")
+        
+        self.toggle_button = ctk.CTkButton(button_frame,
+                                         text="View Stable Notes",
+                                         command=self.toggle_patch_notes,
+                                         width=100,
+                                         height=28)
+        self.toggle_button.pack(side="left", padx=(0, 5))
+        
+        self.github_button = ctk.CTkButton(button_frame,
+                                         text="View on Github",
+                                         command=self.open_github_notes,
+                                         width=100,
+                                         height=28)
+        self.github_button.pack(side="left")
+        
+        self.patch_notes = ctk.CTkTextbox(self.patch_frame, wrap="word")
+        self.patch_notes.grid(row=1, column=0, padx=10, pady=(0,10), sticky="nsew")
+        
+        # Add variables for patch notes state
+        self.showing_experimental_notes = True
+        self.stable_patch_notes = ""
+        self.experimental_patch_notes = ""
+        self.bn_patch_notes = ""
+        self.dcss_patch_notes = ""
 
 if __name__ == "__main__":
     app = CDDALauncher()

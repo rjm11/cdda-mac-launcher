@@ -642,8 +642,9 @@ class CDDALauncher(ctk.CTk):
         
         # Update experimental version display
         is_exp_latest = exp_version == self.latest_experimental_mac_tag
-        latest_text = f"Latest:        {self.latest_experimental_tag}\nMac build:     {self.latest_experimental_mac_tag}"
-        installed_text = f"Installed:     {exp_version if exp_version else 'Not installed'}"
+        latest_text = f"Latest:         {self.latest_experimental_tag}"
+        mac_build_text = f"Mac build:      {self.latest_experimental_mac_tag}"
+        installed_text = f"Installed:      {exp_version if exp_version else 'Not installed'}"
         
         if exp_version and is_exp_latest:
             installed_text += " ✓"
@@ -651,56 +652,63 @@ class CDDALauncher(ctk.CTk):
             installed_text += "\nLatest Mac Build and Latest Build do not match,\nupdate coming soon"
         
         self.exp_latest_label.configure(
-            text=latest_text,
-            text_color=("yellow" if not is_exp_latest else "white")
+            text=f"{latest_text}\n{mac_build_text}",
+            text_color=("yellow" if not is_exp_latest else "white"),
+            justify="left"
         )
         self.exp_installed_label.configure(
             text=installed_text,
-            text_color="green" if is_exp_latest else "white"
+            text_color="green" if is_exp_latest else "white",
+            justify="left"
         )
         
         # Update stable version display
         is_stable_latest = stable_version == self.latest_stable_tag
-        latest_text = f"Latest:        {self.latest_stable_tag}"
-        installed_text = f"Installed:     {stable_version if stable_version else 'Not installed'}"
+        latest_text = f"Latest:         {self.latest_stable_tag}"
+        installed_text = f"Installed:      {stable_version if stable_version else 'Not installed'}"
         if stable_version and is_stable_latest:
             installed_text += " ✓"
         
         self.stable_latest_label.configure(
             text=latest_text,
-            text_color=("yellow" if not is_stable_latest else "white")
+            text_color=("yellow" if not is_stable_latest else "white"),
+            justify="left"
         )
         self.stable_installed_label.configure(
             text=installed_text,
-            text_color="green" if is_stable_latest else "white"
+            text_color="green" if is_stable_latest else "white",
+            justify="left"
         )
         
         # Update Bright Nights version display
         is_bn_latest = bn_version == self.latest_bn_tag
-        latest_text = f"Latest:        {self.latest_bn_tag}"
-        installed_text = f"Installed:     {bn_version if bn_version else 'Not installed'}"
+        latest_text = f"Latest:         {self.latest_bn_tag}"
+        installed_text = f"Installed:      {bn_version if bn_version else 'Not installed'}"
         if bn_version and is_bn_latest:
             installed_text += " ✓"
         
         self.bn_latest_label.configure(
             text=latest_text,
-            text_color=("yellow" if not is_bn_latest else "white")
+            text_color=("yellow" if not is_bn_latest else "white"),
+            justify="left"
         )
         self.bn_installed_label.configure(
             text=installed_text,
-            text_color="green" if is_bn_latest else "white"
+            text_color="green" if is_bn_latest else "white",
+            justify="left"
         )
         
         # Update DCSS version display
         is_dcss_latest = dcss_version == self.latest_dcss_tag
-        latest_text = f"Latest:        {self.latest_dcss_tag}"
-        installed_text = f"Installed:     {dcss_version if dcss_version else 'Not installed'}"
+        latest_text = f"Latest:         {self.latest_dcss_tag}"
+        installed_text = f"Installed:      {dcss_version if dcss_version else 'Not installed'}"
         if dcss_version and is_dcss_latest:
             installed_text += " ✓"
         
         self.dcss_latest_label.configure(
             text=latest_text,
-            text_color=("yellow" if not is_dcss_latest else "white")
+            text_color=("yellow" if not is_dcss_latest else "white"),
+            justify="left"
         )
 
     def download_version(self, version_type):

@@ -214,64 +214,58 @@ class CDDALauncher(ctk.CTk):
         version_frame = ctk.CTkFrame(exp_frame, fg_color="transparent")
         version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")  # More horizontal padding
         self.exp_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.exp_latest_label.pack(anchor="w", padx=(0, 10))  # Add right padding
+        self.exp_latest_label.pack(anchor="w")
         self.exp_installed_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
-        self.exp_installed_label.pack(anchor="w", padx=(0, 10))  # Add right padding
+        self.exp_installed_label.pack(anchor="w")
         
-        button_frame = ctk.CTkFrame(exp_frame)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=2)  # Reduced padding
+        exp_button_frame = ctk.CTkFrame(exp_frame)
+        exp_button_frame.grid(row=1, column=0, columnspan=2, pady=2)
         
-        ctk.CTkButton(button_frame, text="Download Latest", 
+        ctk.CTkButton(exp_button_frame, text="Download Latest", 
                      command=lambda: self.download_version("experimental"),
-                     width=100,  # Smaller button width
-                     height=28).pack(side="left", padx=2)  # Reduced padding
-        ctk.CTkButton(button_frame, text="Launch", 
+                     width=100,
+                     height=28).pack(side="left", padx=2)
+        ctk.CTkButton(exp_button_frame, text="Launch", 
                      command=lambda: self.launch_game("experimental"),
-                     width=80,  # Smaller button width
-                     height=28).pack(side="left", padx=2)  # Reduced padding
-        ctk.CTkButton(button_frame, text="Open Folder", 
+                     width=80,
+                     height=28).pack(side="left", padx=2)
+        ctk.CTkButton(exp_button_frame, text="Open Folder", 
                      command=lambda: self.open_folder("experimental"),
-                     width=90,  # Smaller button width
-                     height=28).pack(side="left", padx=2)  # Reduced padding
+                     width=90,
+                     height=28).pack(side="left", padx=2)
         
         # Stable Version
         stable_frame = ctk.CTkFrame(self.cdda_frame)
-        stable_frame.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
+        stable_frame.grid(row=1, column=0, padx=5, pady=2, sticky="ew")  # Reduced padding
         stable_frame.grid_columnconfigure(1, weight=1)
         
-        # Title with refresh button
-        title_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
-        title_frame.grid(row=0, column=0, padx=10, pady=5)
+        # Title for stable version
+        stable_title_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
+        stable_title_frame.grid(row=0, column=0, padx=5, pady=2)  # Reduced padding
         
-        ctk.CTkLabel(title_frame, text="Stable Version:", 
-                    font=ctk.CTkFont(weight="bold")).pack(side="left", padx=(0,5))
-        
-        ctk.CTkButton(title_frame,
-                     text="↻",
-                     command=self.check_versions,
-                     width=25,
-                     height=25).pack(side="left")
+        ctk.CTkLabel(stable_title_frame, text="Stable Version:", 
+                    font=ctk.CTkFont(weight="bold", size=13)).pack(side="left", padx=(0,5))  # Smaller font
         
         # Split version display into two labels
-        version_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
-        version_frame.grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        self.stable_latest_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
+        stable_version_frame = ctk.CTkFrame(stable_frame, fg_color="transparent")
+        stable_version_frame.grid(row=0, column=1, padx=15, pady=5, sticky="w")  # More horizontal padding
+        self.stable_latest_label = ctk.CTkLabel(stable_version_frame, text="", font=ctk.CTkFont(family="Courier"))
         self.stable_latest_label.pack(anchor="w")
-        self.stable_installed_label = ctk.CTkLabel(version_frame, text="", font=ctk.CTkFont(family="Courier"))
+        self.stable_installed_label = ctk.CTkLabel(stable_version_frame, text="", font=ctk.CTkFont(family="Courier"))
         self.stable_installed_label.pack(anchor="w")
         
-        button_frame = ctk.CTkFrame(stable_frame)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=2)
+        stable_button_frame = ctk.CTkFrame(stable_frame)
+        stable_button_frame.grid(row=1, column=0, columnspan=2, pady=2)
         
-        ctk.CTkButton(button_frame, text="Download Latest", 
+        ctk.CTkButton(stable_button_frame, text="Download Latest", 
                      command=lambda: self.download_version("stable"),
                      width=100,
                      height=28).pack(side="left", padx=2)
-        ctk.CTkButton(button_frame, text="Launch", 
+        ctk.CTkButton(stable_button_frame, text="Launch", 
                      command=lambda: self.launch_game("stable"),
                      width=80,
                      height=28).pack(side="left", padx=2)
-        ctk.CTkButton(button_frame, text="Open Folder", 
+        ctk.CTkButton(stable_button_frame, text="Open Folder", 
                      command=lambda: self.open_folder("stable"),
                      width=90,
                      height=28).pack(side="left", padx=2)

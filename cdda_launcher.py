@@ -14,6 +14,7 @@ from tqdm import tqdm
 import time
 import socket
 import sys
+import logging
 
 class SingleInstance:
     def __init__(self):
@@ -40,7 +41,7 @@ class SingleInstance:
                 self.sock.listen(1)
                 self.start_listener()
             except Exception as e:
-                print(f"Error setting up socket: {e}")
+            logging.error(f"Error setting up socket: {e}")
                 self.sock.close()
                 if os.path.exists(self.socket_path):
                     os.unlink(self.socket_path)
@@ -141,7 +142,7 @@ class CDDALauncher(ctk.CTk):
                 pass  # If there's any error reading, keep the default None values
 
     def save_versions(self):
-        versions = {
+        versilogging.error(f"Error loading versions: {e}")
             'experimental': self.installed_experimental_version,
             'stable': self.installed_stable_version,
             'bn': self.installed_bn_version
@@ -529,7 +530,7 @@ class CDDALauncher(ctk.CTk):
         thread = threading.Thread(target=check)
         thread.daemon = True
         thread.start()
-
+logging.error(f"Error checking versions: {str(e)}")
     def check_installed_versions(self):
         exp_version = self.get_version(self.experimental_path, self.installed_experimental_version)
         stable_version = self.get_version(self.stable_path, self.installed_stable_version)
@@ -718,7 +719,7 @@ class CDDALauncher(ctk.CTk):
             except Exception as e:
                 self.status_text.set(f"Error during download: {str(e)}")
                 self.progress_bar.set(0)
-                print(f"Detailed error: {str(e)}")  # For debugging
+                print(f"Detailed logging.error(f"Download error: {str(e)}")
         
         thread = threading.Thread(target=download)
         thread.daemon = True

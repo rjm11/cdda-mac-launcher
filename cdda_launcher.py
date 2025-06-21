@@ -152,6 +152,15 @@ class CDDALauncher(ctk.CTk):
         except IOError:
             pass  # If we can't save, just continue
 
+    def get_game_path(self, version_type):
+        """Return the filesystem path for a given game version."""
+        if version_type == "experimental":
+            return self.experimental_path
+        elif version_type == "stable":
+            return self.stable_path
+        else:
+            return self.bn_path
+
     def _create_ui(self):
         # Header with game selector
         header_frame = ctk.CTkFrame(self)
@@ -657,7 +666,7 @@ class CDDALauncher(ctk.CTk):
                     if not app_name:
                         raise Exception("Could not find .app in mounted DMG")
                     
-                    target_path = self.experimental_path if version_type == "experimental" else self.stable_path
+                    target_path = self.get_game_path(version_type)
                     
                     # Backup important user data
                     save_data = {}
@@ -725,7 +734,7 @@ class CDDALauncher(ctk.CTk):
         thread.start()
 
     def launch_game(self, version_type):
-        path = self.experimental_path if version_type == "experimental" else self.stable_path
+        path = self.get_game_path(version_type)
         
         if not os.path.exists(path):
             self.status_text.set(f"No {version_type} version installed")
@@ -741,7 +750,7 @@ class CDDALauncher(ctk.CTk):
         self.status_text.set(f"Launching {version_type} version...")
 
     def open_folder(self, version_type):
-        path = self.experimental_path if version_type == "experimental" else self.stable_path
+        path = self.get_game_path(version_type)
         subprocess.Popen(["open", path])
 
     def on_closing(self):
